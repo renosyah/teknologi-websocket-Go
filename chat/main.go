@@ -1,12 +1,43 @@
 package main
 
+import "github.com/gorilla/mux"
 import "net/http"
 import "fmt"
 import "log"
 import "sync"
 import "time"
 import "github.com/gorilla/websocket"
-import "flag"
+import "gopkg.in/mgo.v2"
+import "gopkg.in/mgo.v2/bson"
+import "os"
+import "html/template"
+
+var router = mux.NewRouter()
+
+func connect() *mgo.Session {
+	var session, err = mgo.Dial("localhost")
+	if err != nil {
+		os.Exit(0)
+	}
+	return session
+}
+
+type akun struct {
+	Nama     string `bson:"nama"`
+	Username string `bson:"username"`
+	Password string `bson:"password"`
+}
+
+type pesan struct {
+	Pengirim string `bson:"pengirim"`
+	Pesan    string `bson:"pesan"`
+	Penerima string `bson:"penerima"`
+}
+
+type halaman_utama struct {
+	Nama  string
+	Index []akun
+}
 
 var upgrader = &websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -30,14 +61,21 @@ type wsHandler struct {
 	h *hub
 }
 
-func (c *connection) reader(wg *sync.WaitGroup, wsconn *websocket.Conn) {
+func (c *connection) reader(wg *sync.WaitGroup, wsconn *websocket.Conn, tujuan string, pengirim string) {
 	defer wg.Done()
+	session := connect()
+	defer session.Close()
+
+	var collection = session.DB("chat_app").C("chat_log")
 
 	for {
 		_, msg, err := wsconn.ReadMessage()
 		if err != nil {
 			break
 		}
+		data := pesan{pengirim, string(msg), tujuan}
+		collection.Insert(data)
+
 		c.h.Broadcast <- msg
 	}
 }
@@ -96,11 +134,50 @@ func (h *hub) removeconnection(conn *connection) {
 	}
 }
 
-func home(res http.ResponseWriter, req *http.Request) {
-	http.ServeFile(res, req, "index.html")
+func chat(res http.ResponseWriter, req *http.Request) {
+	tujuan := req.FormValue("nama_penerima")
+
+	halaman, _ := template.ParseFiles("chat.html")
+	data := map[string]string{
+		"Nama": tujuan,
+	}
+	halaman.Execute(res, data)
+}
+func login(res http.ResponseWriter, req *http.Request) {
+	http.ServeFile(res, req, "login.html")
+}
+func daftar(res http.ResponseWriter, req *http.Request) {
+	http.ServeFile(res, req, "daftar.html")
+}
+func index(res http.ResponseWriter, req *http.Request) {
+	akses := namauser(req)
+
+	if akses != "" {
+
+		session := connect()
+		defer session.Close()
+
+		var data_akun []akun
+
+		var collection = session.DB("chat_app").C("akun")
+
+		err := collection.Find(bson.M{"username": bson.M{"$ne": akses}}).All(&data_akun)
+		if err != nil {
+			fmt.Println("gagal mengambil data")
+		}
+		data := halaman_utama{akses, data_akun}
+
+		halaman, _ := template.ParseFiles("index.html")
+		halaman.Execute(res, data)
+
+	} else {
+		http.Redirect(res, req, "/", 301)
+	}
 }
 
 func (wsh wsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	pengirim := namauser(req)
+
 	wsconn, err := upgrader.Upgrade(res, req, nil)
 	if err != nil {
 		log.Printf("error upgrading %s", err)
@@ -114,20 +191,27 @@ func (wsh wsHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	wg.Add(2)
 
 	go c.write(&wg, wsconn)
-	go c.reader(&wg, wsconn)
+	go c.reader(&wg, wsconn, "", pengirim)
 	wg.Wait()
 	wsconn.Close()
 
 }
 
 func main() {
-	flag.Parse()
 	h := newHub()
-	router := http.NewServeMux()
 
-	router.HandleFunc("/", home)
+	router.HandleFunc("/chat", chat)
+	router.HandleFunc("/index", index)
+	router.HandleFunc("/daftar", daftar)
+	router.HandleFunc("/mau_daftar", mau_daftar)
+	router.HandleFunc("/", login)
+	router.HandleFunc("/mau_login", mau_login)
+	router.HandleFunc("/mau_logout", mau_logout)
 	router.Handle("/ws", wsHandler{h: h})
+	http.Handle("/", router)
+
 	fmt.Println("running the server now....")
-	http.ListenAndServe(":8080", router)
+	http.Handle("/data/", http.StripPrefix("/data/", http.FileServer(http.Dir("data"))))
+	http.ListenAndServe(":8080", nil)
 
 }

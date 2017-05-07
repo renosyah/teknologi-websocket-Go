@@ -1,0 +1,56 @@
+#tabel_input {
+		border-radius:10px;
+	box-shadow:10px 10px 10px black;
+	
+
+}
+
+
+#tabel_output {
+	border-radius:1px;
+	box-shadow:10px 10px 10px black;
+
+
+}
+
+#tabel_output table {
+	border:10px;
+	border-color:black;
+
+
+}
+
+
+#option_data{
+
+	border-radius:10px;
+	box-shadow:10px 10px 10px black;
+	background:url(body2.jpg);
+
+
+
+}
+
+#hide_option{
+
+	border-radius:10px;
+	box-shadow:10px 10px 10px black;
+	background:url(body2.jpg);
+
+
+
+}
+
+body {
+
+	font-family:tahoma,verdana,arial;
+	color:lightgreen;
+	background:url(body.jpg);
+	background-attachment:fixed;
+	zoom:reset;
+background-repeat:no-repeat;
+background-size:cover;
+
+
+}
+

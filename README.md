@@ -1,27 +1,42 @@
 ## Teknologi websocket dengan go
 
-terdapat contoh penerapan teknologi websocket yaitu dengan aplikasi chat sederhana yang terdapat pada folder chat
+terdapat contoh penerapan teknologi websocket yaitu dengan aplikasi chat sederhana yang terdapat pada folder chat, untuk database pada aplikasi ini menggunakan database mongoDB
 
 cara penggunaan : 
 
 
-buka chat dengan 2 browser  seperti tampilan berikut dan pihak pertama mencoba mengirim pesan :
+buka chat dengan 2 browser berbeda, pertama akan muncul menu login :
 ![GitHub Logo](/image/1.jpg)
 
 
 
 
-akan terlihat bahwa keduanya menerima pesan yang sama :
+akan terlihat daftar user selain anda setelah login :
 ![GitHub Logo](/image/2.jpg)
 
 
 
-hal yang sama juga dapat dilakukan dari pihak kedua :
+mencoba berkomunikasi antar browser dengan pihak pertama mencoba mengirim pesan :
 ![GitHub Logo](/image/3.jpg) 
+
+
+
+
+
+kedua pihak menerima pesan karena pesan masih bertipe broadcash :
+![GitHub Logo](/image/4.jpg) 
+
+
+
+
+
+pihak kedua mencoba mengirim pesan balasan :
+![GitHub Logo](/image/5.jpg) 
+
 
 
 
 sekian, terimakasih....
 
 
---semoga bermanfaat--
+--silahkan dikembangkan--
