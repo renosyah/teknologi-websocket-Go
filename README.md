@@ -36,6 +36,13 @@ pihak kedua mencoba mengirim pesan balasan :
 
 
 
+
+data akun dan juga log pesan yang terdapat pada database MongoDB  :
+![GitHub Logo](/image/6.jpg) 
+
+
+
+
 sekian, terimakasih....
 
 
